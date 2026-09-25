@@ -686,59 +686,86 @@ for i=1,40 do
 	positions[i]=Vector2.new(mouse.X,mouse.Y)
 end
 
-local mini=Instance.new("Frame",gui)
-mini.Name="SnakeMini"
-mini.Size=UDim2.fromOffset(52,40)
-mini.BackgroundColor3=WINDOW
-mini.BorderSizePixel=0
-mini.ClipsDescendants=true
-mini.Active=true
-mini.Visible=false
-corner(mini,9)
-stroke(mini,WINDOW_STROKE,1.2)
+local collapsed=false
+local sizeTween=nil
+local FULL_WIDTH=360
+local FULL_HEIGHT=235
+local COLLAPSED_HEIGHT=38
 
-local restoreBtn=Instance.new("TextButton",mini)
-restoreBtn.Size=UDim2.new(1,0,1,0)
-restoreBtn.BackgroundTransparency=1
-restoreBtn.BorderSizePixel=0
-restoreBtn.AutoButtonColor=false
-restoreBtn.Text="S"
-restoreBtn.TextSize=17
-restoreBtn.TextColor3=TEXT
-restoreBtn.FontFace=Font.new(
-	"rbxasset://fonts/families/SourceSansPro.json",
-	Enum.FontWeight.Bold,
-	Enum.FontStyle.Normal
-)
+local function clampMain(height)
+	local camera=Workspace.CurrentCamera
+	if not camera then
+		return
+	end
 
-connect(restoreBtn.MouseEnter,function()
-	TweenService:Create(
-		restoreBtn,
-		TweenInfo.new(.1),
-		{TextColor3=Color3.fromRGB(200,200,208)}
-	):Play()
-end)
+	local viewport=camera.ViewportSize
+	local topOffset=-57
+	local bottomOffset=57
 
-connect(restoreBtn.MouseLeave,function()
-	TweenService:Create(
-		restoreBtn,
-		TweenInfo.new(.1),
-		{TextColor3=TEXT}
-	):Play()
-end)
+	local x=math.clamp(
+		main.Position.X.Offset,
+		0,
+		math.max(0,viewport.X-FULL_WIDTH)
+	)
 
-makeDraggable(restoreBtn,mini)
+	local y=math.clamp(
+		main.Position.Y.Offset,
+		topOffset,
+		math.max(topOffset,viewport.Y-height-bottomOffset)
+	)
+
+	main.Position=UDim2.fromOffset(x,y)
+end
+
+local function setCollapsed(state)
+	if collapsed==state then
+		return
+	end
+
+	collapsed=state
+
+	if sizeTween then
+		sizeTween:Cancel()
+		sizeTween=nil
+	end
+
+	if collapsed then
+		content.Visible=false
+
+		sizeTween=TweenService:Create(
+			main,
+			TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+			{Size=UDim2.fromOffset(FULL_WIDTH,COLLAPSED_HEIGHT)}
+		)
+
+		sizeTween:Play()
+	else
+		clampMain(FULL_HEIGHT)
+
+		sizeTween=TweenService:Create(
+			main,
+			TweenInfo.new(.18,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),
+			{Size=UDim2.fromOffset(FULL_WIDTH,FULL_HEIGHT)}
+		)
+
+		local thisTween=sizeTween
+
+		connect(thisTween.Completed,function()
+			if destroyed then
+				return
+			end
+
+			if not collapsed and sizeTween==thisTween and main.Parent then
+				content.Visible=true
+			end
+		end)
+
+		thisTween:Play()
+	end
+end
 
 connect(minimizeBtn.MouseButton1Click,function()
-	mini.Position=main.Position
-	main.Visible=false
-	mini.Visible=true
-end)
-
-connect(restoreBtn.MouseButton1Click,function()
-	main.Position=mini.Position
-	mini.Visible=false
-	main.Visible=true
+	setCollapsed(not collapsed)
 end)
 
 connect(player.CharacterAdded,function()
