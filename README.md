@@ -1,6 +1,6 @@
 # Snake.lua
 
-A lightweight Roblox Luau cursor effect that creates a trailing snake following your mouse.
+A lightweight Roblox Luau cursor effect that creates a configurable trailing snake following your mouse.
 
 ## Preview
 
@@ -16,9 +16,23 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/zvzt/snake.lua/refs/h
 
 - 40-segment cursor trail
 - Smooth movement interpolation
-- Draggable compact control panel
-- On/off toggle
-- Kill button for removing the interface
+- Onyx-style draggable interface
+- Active/Disabled header switch
+- HSV color picker with hue slider
+- Live RGB inputs
+- RGB rainbow mode
+- Manual color edits automatically stop rainbow mode
+- Header-only minimize/restore behavior
+- Rerun cleanup so old connections and trails do not stack
+- Screen-edge drag clamping with `-57 / 57` vertical offsets
+
+## Controls
+
+- Use the header switch to enable or disable the trail
+- Use the color square, hue bar, or RGB fields to choose a trail color
+- Click **RGB** to toggle rainbow mode
+- Click **—** to collapse the window to its header
+- Click **X** to fully clean up the UI and active connections
 
 ## Compatibility
 
